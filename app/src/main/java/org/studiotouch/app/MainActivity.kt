@@ -162,7 +162,7 @@ fun StudioTouchApp() {
                 listOf("C", "D", "E", "F", "G", "A", "B", "C").forEach { note ->
                     Box(Modifier.weight(1f).padding(2.dp).height(54.dp)
                         .background(Color(0xFFE7EAF0), RoundedCornerShape(5.dp))
-                        .clickable { }, contentAlignment = Alignment.BottomCenter) {
+                        .clickable { AudioEngine.previewMidi(noteMidi = listOf(60, 62, 64, 65, 67, 69, 71, 72)[listOf("C", "D", "E", "F", "G", "A", "B", "C").indexOf(note)] ) }, contentAlignment = Alignment.BottomCenter) {
                         Text(note, color = Bg, fontSize = 10.sp, modifier = Modifier.padding(bottom = 5.dp))
                     }
                 }
