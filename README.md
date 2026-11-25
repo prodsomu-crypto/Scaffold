@@ -4,10 +4,11 @@ An independent Android implementation inspired by the documented workflow of Kir
 
 ## Current prototype
 - Touch-first dark workspace
-- Sequencer grid with tappable pattern cells
-- Project panel placeholder
-- Piano-roll grid placeholder
-- Transport UI placeholder
+- Touch-editable 4-track pattern grid
+- Tempo preset selector
+- Local auto-save and restore for tempo and pattern steps
+- On-screen piano keyboard with a synthesized single-oscillator note preview
+- Project panel and Piano Roll, Automation, and Mixer layout placeholders
 - GitHub Actions workflow to build and upload a debug APK
 
 ## Build on GitHub (phone-friendly)
@@ -33,4 +34,4 @@ An independent Android implementation inspired by the documented workflow of Kir
 - GitHub Actions debug APK build
 
 ## Status
-This initial commit is a UI prototype. It does not yet generate or play sound, save projects, or export audio.
+The current build can preview notes from the keyboard and auto-save tempo and step patterns locally on the device. The sequencer transport is still a UI control: timed multi-track playback, instrument editing, effects, automation, project-file import/export, and audio export are not implemented yet.
