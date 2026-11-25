@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -38,6 +39,13 @@ fun StudioTouchApp() {
     var playing by remember { mutableStateOf(false) }
     var activeTab by remember { mutableStateOf("Sequencer") }
     var showProject by remember { mutableStateOf(false) }
+    var tempoMenuExpanded by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val preferences = remember(context) {
+        context.getSharedPreferences("studiotouch_project", 0)
+    }
+    var tempo by remember { mutableIntStateOf(120) }
+    var projectRestored by remember { mutableStateOf(false) }
     val tracks = listOf("Lead", "Bass", "Drums", "Pad")
     val patterns = remember {
         mutableStateListOf(
@@ -46,6 +54,34 @@ fun StudioTouchApp() {
             mutableStateListOf(true, false, true, false, true, false, true, false),
             mutableStateListOf(false, false, true, true, false, false, true, true)
         )
+    }
+
+    LaunchedEffect(Unit) {
+        tempo = preferences.getInt("tempo", 120).coerceIn(40, 240)
+        preferences.getString("patterns", null)
+            ?.split("|")
+            ?.forEachIndexed { rowIndex, savedRow ->
+                if (rowIndex < patterns.size) {
+                    savedRow.forEachIndexed { columnIndex, value ->
+                        if (columnIndex < patterns[rowIndex].size) {
+                            patterns[rowIndex][columnIndex] = value == '1'
+                        }
+                    }
+                }
+            }
+        projectRestored = true
+    }
+
+    val patternSnapshot = patterns.map { row ->
+        row.joinToString("") { enabled -> if (enabled) "1" else "0" }
+    }
+    LaunchedEffect(tempo, patternSnapshot, projectRestored) {
+        if (projectRestored) {
+            preferences.edit()
+                .putInt("tempo", tempo)
+                .putString("patterns", patternSnapshot.joinToString("|"))
+                .apply()
+        }
     }
 
     MaterialTheme(colorScheme = darkColorScheme(
@@ -69,7 +105,28 @@ fun StudioTouchApp() {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("120 BPM", color = TextMain, fontWeight = FontWeight.Bold)
+                Box {
+                    Text(
+                        "$tempo BPM  ▾",
+                        color = TextMain,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable { tempoMenuExpanded = true }
+                    )
+                    DropdownMenu(
+                        expanded = tempoMenuExpanded,
+                        onDismissRequest = { tempoMenuExpanded = false }
+                    ) {
+                        listOf(80, 90, 100, 110, 120, 128, 140, 160, 180, 200).forEach { bpm ->
+                            DropdownMenuItem(
+                                text = { Text("$bpm BPM") },
+                                onClick = {
+                                    tempo = bpm
+                                    tempoMenuExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
                 Text("4/4", color = TextMuted)
                 Text("BAR 01", color = TextMuted)
                 Text(if (playing) "● PLAYING" else "■ STOPPED", color = if (playing) Accent else TextMuted)
@@ -168,7 +225,7 @@ fun StudioTouchApp() {
                 }
                 Text("♪", color = Accent)
             }
-            Text("Prototype UI only • audio engine and project persistence are not implemented yet",
+            Text("Keyboard tone preview • patterns and tempo auto-save locally • full song playback is next",
                 color = TextMuted, fontSize = 9.sp, modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 5.dp))
         }
     }
